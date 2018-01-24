@@ -33,7 +33,7 @@ Støtter disse funksjonene
 For å sette opp tag manager må man legge inn referanse til scriptet, og deretter kjøre initialiser datalayer-funksjonen.
 currencyCode er optional, productData må settes. productData er data-tagen som brukes til å hente produkt-data som en JSON string. I dette tilfellet vil da data-taggen bli: data-frigg-gtm-product.
 ```
-<script src="../frigg-cms-tag-manager.js"></script>
+<script src="../frigg-cms-tag-manager-ecommerce.js"></script>
 <script>
   friggTagManagerEcommerce.initiateDataLayerWithEcommerce({currencyCode: 'NOK', productData: 'friggGtmProduct'});
 </script>
