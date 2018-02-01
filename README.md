@@ -28,35 +28,57 @@ Støtter disse funksjonene
     - Måler fjern fra handlevogn.
     - Typisk bruk
         - Handlevogn
+- Transaction
+    - Gjennomført ordre, denne må settes i Frigg-admin
+    - [AnalyticsTypeID] må settes til 2 i PubSystemUrl
+    - Transaksjon trigger en event som heter "transactionEvent" som må registreres i GTM.
 
-## Hovedoppsett ##
+## Oppsett i HTML-mal ##
 For å sette opp tag manager må man legge inn referanse til scriptet, og deretter kjøre initialiser datalayer-funksjonen.
 currencyCode er optional, productData må settes. productData er data-tagen som brukes til å hente produkt-data som en JSON string. I dette tilfellet vil da data-taggen bli: data-frigg-gtm-product.
-```
+```html
 <script src="../frigg-cms-tag-manager-ecommerce.js"></script>
 <script>
-  friggTagManagerEcommerce.initiateDataLayerWithEcommerce({currencyCode: 'NOK', productData: 'friggGtmProduct'});
+    <!-- Initierer dataLayer, må alltid være med! -->
+    friggTagManagerEcommerce.initiateDataLayerWithEcommerce({currencyCode: 'NOK', productData: 'friggGtmProduct'});
+
+    <!-- Product impression, settes opp i hovedmal! -->
+    friggTagManagerEcommerce.measureProductImpressions({selector: '[data-frigg-gtm-impression]'});
 </script>
 ```
 
 ProduktData må alltid settes i en data-tag som en JSON string. Eksempel:
-```
-data-frigg-gtm-product='{"id": "123", "name": "Løve", "price": "100.00", "brand": "Afrika", "category": "Dyr", "variant": "Hann", "list": "Produktsøk"}'
+```html
+<div data-frigg-gtm-product='{"id": "123", "name": "Løve", "price": "100.00", "brand": "Afrika", "category": "Dyr", "variant": "Hann", "list": "Produktsøk"}'>
+</div>
 ```
 
-## Debugging ##
+### Debugging ###
 Ved å legge til debug parameter i url (eks www.sdf.sdf?debug) vil det dukke opp logger i console. I tillegg vil eventCallback ikke bli utført.
 
-## ProductImpression ##
+### ProductImpression ###
 Eksempel på hvordan dette kan settes opp. "selector" er da måten elementet hentes på i JQuery. Produktet settes også opp i en data-tag som er definert i hovedoppsettet.
-```
-friggTagManagerEcommerce.measureProductImpressions({selector: '[data-frigg-gtm-impression]'});
-
+```html
 <div data-frigg-gtm-impression data-frigg-gtm-product='{"id": "{content:default_productno}", "name": "{content:default_title}", "price": "{insert:netpricecleanhtml}", "brand": "", "category": "", "variant": "", "list": "Produktsøk"}'>
 </div>
 ```
 
-## Parametere til klikk-eventer ##
+### ProductDetail ###
+Legges på produktet, registrerer "productView" inne på et produkt.
+Samme 
+```html
+<div data-frigg-gtm-detail data-frigg-gtm-product='{"id": "{content:default_productno}", "name": "{content:default_title}", "price": "{insert:netpricecleanhtml}", "brand": "", "category": "", "variant": "", "list": "Produktsøk"}'>
+</div>
+```
+
+Scriptet kan enten legges på produktInnlegg-malen eller i master malen.
+```html
+<script>
+    friggTagManager.measureProductDetailView({selector: '[data-frigg-gtm-detail]'});
+</script>
+```
+
+### Parametere til klikk-eventer ###
 For klikk eventer må man alltid legge til et objekt som inneholder den dataen man trenger
 Name|HTML Type|Required|Description
 --- | --- | --- | ---
@@ -67,36 +89,62 @@ quantityElement | `<input>` | Nei | **Kun legg til /fjern fra handlevogn!** Inpu
 Dersom verken element eller anchorElement har href satt opp, vil det ikke være noe redirekt.
 
 Eksempel: 
-```
-friggTagManagerEcommerce.measureRemoveProductFromCart({element: this.parentElement, anchorElement: this, quantityElement: this.parentElement.children[1]});
+```javascript
+friggTagManagerEcommerce.measureRemoveProductFromCart({
+    element: $('#single-product-item')[0], 
+    anchorElement: this, 
+    quantityElement: $('#single-product-item').find('input.quantity')[0]
+});
 ```
 
-## ProductClick ##
+### ProductClick ###
 Klikk-event som legges på elementet. onclick returnerer alltid false, href-url kjøres i eventCallback fra GTM. 
 
-```
+```html
 <div data-frigg-gtm-product='{"id": "{content:default_productno}", "name": "{content:default_title}", "price": "{insert:netpricecleanhtml}", "brand": "", "category": "", "variant": ""'>
     <a href="/produkt/123" title="{content:default_title?length=60}" onclick="return friggTagManagerEcommerce.measureProductClick({element: this.parentElement, anchorElement: this})">
     </a>
 </div>
 ```
 
-## ProductAddToCart ##
+### ProductAddToCart ##
 Klikk-event som legges på elementet. onclick returnerer alltid false, href-url kjøres i eventCallback fra GTM. 
 
-```
+```html
 <div data-frigg-gtm-product='{"id": "{content:default_productno}", "name": "{content:default_title}", "price": "{insert:netpricecleanhtml}", "brand": "", "category": "", "variant": ""'>
     <a href="/produkt/123" title="{content:default_title?length=60}" onclick="return friggTagManagerEcommerce.measureaddProductToCart({element: this.parentElement, anchorElement: this, quantityElement: this.parentElement.children[2]})">
     </a>
 </div>
 ```
 
-## ProductRemoveFromCart ##
+### ProductRemoveFromCart ###
 Klikk-event som legges på elementet. onclick returnerer alltid false, href-url kjøres i eventCallback fra GTM. 
 
-```
+```html
 <div data-frigg-gtm-product='{"id": "{content:default_productno}", "name": "{content:default_title}", "price": "{insert:netpricecleanhtml}", "brand": "", "category": "", "variant": ""'>
     <a href="/produkt/123" title="{content:default_title?length=60}" onclick="return friggTagManagerEcommerce.measureRemoveProductFromCart({element: this.parentElement, anchorElement: this, quantityElement: this.parentElement.children[1]});">
     </a>
 </div>
 ```
+
+## Oppsett i Google Tag Manager og Google Analytics ##
+Dette må legges inn for at GTM-koden skal registreres av Enhanced Ecommerce i Analytics
+
+### Oppsett av Enhanced Ecommerce I Google Analytics ###
+Oppsettet må være likt som på bildet. Legg merke til "Checkout Labeling", disse må matche for at checkout skal fungere.
+
+![alt-text](https://image.ibb.co/euT9tm/enhanced_ecommerce_google_settings.png)
+
+### Oppsett av Enhanced Ecommerce I Google Tag Manager ###
+
+
+Slik settes opp alt fra "scratch"
+1. Sett opp Google Analytics -variabel hvis den ikke finnes. Dette for å koble GTM mot Analytics kontoen.     
+![alt-text](https://image.prntscr.com/image/CzB_5N6QQv28GQs8aOYQHw.png)   
+2. Sett opp Tag med type "Universal Analytics". Universal Analytics må deretter settes opp med 2 triggere, page view og custom event som må hete "friggUpdate". "friggUpdate" sørger for at klikk events blir fanget opp av GTM.   
+![alt-text](https://image.prntscr.com/image/6tvbYbz2Q7_jBn1r2Wzy2Q.png)
+
+
+
+
+

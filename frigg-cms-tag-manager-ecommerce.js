@@ -79,7 +79,6 @@
          */
         measureaddProductToCart: measureaddProductToCart,
         measureRemoveProductFromCart: measureRemoveProductFromCart,
-        measureCheckoutStep: measureCheckoutStep,
 
         /**
          * @param {string} config.currencyCode The ISO currency code, e.g. 'NOK'
@@ -88,11 +87,62 @@
     };
     window.friggTagManagerEcommerce = window.friggTagManager;
 
+    /**
+     * Initiated by Frigg Checkout process
+     * @param {number} step The step index, starts with 1
+     * @param {string} description Description of checkout step
+     */
+    window.checkoutStep = function(step, description){
+        $(function(){
+            _log(getFunctionName(arguments), getFunctionStyle(), arguments);
+            var gtmProducts = convertToGtmProducts(window.checkoutProducts);
+
+            pushObjectToDataLayer({
+                'event': 'checkout',
+                'ecommerce': {
+                  'checkout': {
+                    'actionField': {'step': step, 'option': description},
+                    'products': gtmProducts
+                 }
+               }
+            });
+
+            updateAfterClick();
+        });
+    };
+
+    function convertToGtmProducts(products){
+        var gtmProducts = [];
+        for(var i in products){
+            var product = products[i];
+            gtmProducts.push({
+                'name': product.Description,
+                'id': product.ProductNo,
+                'price': product.TotalDecimalAutoVat,
+                'brand': '',
+                'category': product.CategoryName,
+                'variant': '',
+                'quantity': product.Quantity
+            });
+        }
+
+        return gtmProducts;
+    }
+
+    /**
+     * Updates after click event by firing custom event to GTM.
+     * Should not be used for page views
+     */
+    function updateAfterClick(){
+        dataLayer.push({event: 'friggUpdate'});
+    }
+
     //#region Public functions
     function measureProductImpressions (config){
         _log(getFunctionName(arguments), getFunctionStyle(), arguments);
         initateProductImpressionsOnDataLayer();
 
+        console.log(config.selector);
         $(config.selector).each(function(index){
             var data = this.dataset;
 
@@ -152,6 +202,8 @@
                 }
             }
         }, url);
+
+        updateAfterClick();
         
         return false;
     }
@@ -171,6 +223,8 @@
                 }
             }
         });
+
+        updateAfterClick();
     }
 
     function measureRemoveProductFromCart(config){
@@ -188,13 +242,11 @@
                     'products': [product]
                 }
             }
-        }, config.anchorElement !== undefined ? config.anchorElement.href : config.element.href);
+        }, config.anchorElement !== undefined ? config.anchorElement.href : config.element.href, true);
+
+        updateAfterClick();
 
         return false;
-    }
-    function measureCheckoutStep(config){
-        _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        throw 'Not implemented';
     }
     //#endregion
 
@@ -252,13 +304,21 @@
      * 
      * @param {object} obj The object to be pushed
      * @param {string} eventCallbackUrl Url to go to on eventCallback. If empty then no location change.
+     * @param {bool} eventCallbackUrlAsAjax - Set to true if eventCallbackUrl should be run as callback.
      */
-    function pushObjectToDataLayer(obj, eventCallbackUrl){
+    function pushObjectToDataLayer(obj, eventCallbackUrl, eventCallbackUrlAsAjax){
         obj.eventCallback = function(){
             _log('%c eventCallback, url:' + eventCallbackUrl || '(none)', getFunctionStyle(), obj);
             if(_debug) return;
             if(eventCallbackUrl){
-                document.location = eventCallbackUrl;
+                if(eventCallbackUrlAsAjax){
+                    $.get(eventCallbackUrl).then(function(){
+                        document.location = eventCallbackUrl;
+                    });
+                }
+                else {
+                    document.location = eventCallbackUrl;
+                }
             }
         };
 
