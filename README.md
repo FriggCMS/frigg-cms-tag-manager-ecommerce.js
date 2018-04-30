@@ -143,8 +143,8 @@ Slik settes opp alt fra "scratch"
 ![alt-text](https://image.prntscr.com/image/CzB_5N6QQv28GQs8aOYQHw.png)   
 2. Sett opp Tag med type "Universal Analytics". Universal Analytics må deretter settes opp med 2 triggere, page view og custom event som må hete "friggUpdate". "friggUpdate" sørger for at klikk events blir fanget opp av GTM.   
 ![alt-text](https://image.prntscr.com/image/6tvbYbz2Q7_jBn1r2Wzy2Q.png)
-
-
+3. Sette opp transactionEvent for Enhanced Ecommerce transaksjoner. 
+![alt-text](https://image.prntscr.com/image/IZMtLl8VSSOeX2ZzPli4kg.png)
 
 
 
