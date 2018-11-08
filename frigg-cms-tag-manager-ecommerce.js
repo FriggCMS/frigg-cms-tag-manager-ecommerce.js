@@ -9,12 +9,6 @@
     // Set when datalayer is initalized
     var _dataLayerIsInitiated = false;
 
-    // Set when ecommerce property is initialized.
-    var _ecommerceIsInitiated = false;
-
-    // The index of the ecommerce property on datalayer.
-    var _dataLayerEcommerceIndex = 0;
-
     // Init config.
     var _config = null;
 
@@ -140,33 +134,69 @@
     //#region Public functions
     function measureProductImpressions (config){
         _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        initateProductImpressionsOnDataLayer();
 
-        console.log(config.selector);
+        var products = [];
         $(config.selector).each(function(index){
             var data = this.dataset;
 
             var product = getCleanImpressionProduct(JSON.parse(data[config.productData || _config.productData]), index);
+            products.push(product);
             // Updates position
             data[config.productData || _config.productData] = JSON.stringify(product);
-
-            addProductToImpression(product);
         });
+
+        if(products.length === 0) return;
+
+        // We split up products if more than 20 to avoid maxBytes error from analytics (8kb maxLimit)
+        var maxLimit = 20;
+        if(products.length > maxLimit){
+            while (products.length > 0){
+                var p1 = products.splice(0, maxLimit);
+
+                pushProductImpressions(p1);
+            }
+        }
+        else {
+            pushProductImpressions(products);
+        }
+
+        function pushProductImpressions(p){
+            pushObjectToDataLayer({
+                'ecommerce': {
+                    'currencyCode': _config.currencyCode,
+                    'impressions': p
+                }
+            });
+
+            updateAfterClick();
+        }
     };
 
     function measureProductDetailView(config){
         _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        initiateProductDetailPropertyOnDataLayer();
 
+        var products = [];
         $(config.selector).each(function(index){
             var data = this.dataset;
 
              var product = getCleanImpressionProduct(JSON.parse(data[config.productData || _config.productData]), index);
+             products.push(product);
              // Updates position
              data[config.productData || _config.productData] = JSON.stringify(product);
-
-             addProductToDetail(product)
         });
+
+        if(products.length === 0) return;
+        
+        pushObjectToDataLayer({
+            'ecommerce': {
+                'detail': {
+                    'actionField': {'list': products[0].list},
+                    'products': products
+                }
+            }
+        });    
+     
+        updateAfterClick();
     }
 
     function measureProductClick(config){
@@ -262,7 +292,6 @@
         _log(getFunctionName(arguments), getFunctionStyle(), arguments);
         _config = config;
         initiateDataLayer();
-        initiateEcommercePropertyOnDataLayer(config);
     }
 
      /**
@@ -276,25 +305,6 @@
         }
         else {
             console.warn('Datalayer trying to be initialied more than once.');
-        }
-    }
-
-    /**
-     * Initiate ecommerce property
-     */
-    function initiateEcommercePropertyOnDataLayer(config){
-        _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        if(!_ecommerceIsInitiated){
-            _dataLayerEcommerceIndex = window.dataLayer.length;
-            window.dataLayer.push({
-                'ecommerce': {
-                    'currencyCode': config.currencyCode, // Local currency is optional.
-                }
-            });
-            _ecommerceIsInitiated = true;
-        }
-        else {
-            console.warn('Ecommerce property trying to be initialied more than once.');
         }
     }
 
@@ -358,52 +368,6 @@
         return JSON.parse(data[_config.productData]);
     }
 
-    /**
-     * For cats etc. 
-     * Docs: https://developers.google.com/analytics/devguides/collection/analyticsjs/enhanced-ecommerce#product-data
-     * @param {object} product 
-     */
-    function getCleanCartProduct(product, index){
-        return getCleanImpressionProduct(product, index);
-    }
-
-    /**
-     * Initiates productImpression
-     * @param {string} currencyCode ISO currencyCode, is optional according to google documentation.
-     */
-    function initateProductImpressionsOnDataLayer(currencyCode){
-        _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        window.dataLayer[_dataLayerEcommerceIndex].ecommerce.impressions = [];
-    }
-
-
-    /**
-     * Adds product data object to dataLayer.ecommerce.impressions
-     * @param {object} product Product data
-     */
-    function addProductToImpression(product){
-        _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        window.dataLayer[_dataLayerEcommerceIndex].ecommerce.impressions.push(product);
-    }
-
-    /**
-     * Initiates dataLayer.ecommerce with detail object.
-     */
-    function initiateProductDetailPropertyOnDataLayer(){
-        _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        window.dataLayer[_dataLayerEcommerceIndex].ecommerce.detail = {
-            products: []
-        };
-    }
-
-    /**
-     * Adds product data object to dataLayer.commerce.details.products
-     * @param {object} product Product data
-     */
-    function addProductToDetail(product){
-        _log(getFunctionName(arguments), getFunctionStyle(), arguments);
-        window.dataLayer[_dataLayerEcommerceIndex].ecommerce.detail.products.push(product);
-    }
 
     /**
      * Checks element for quantity and sets it.
