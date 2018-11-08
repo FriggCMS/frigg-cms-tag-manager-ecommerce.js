@@ -249,6 +249,9 @@
             'ecommerce': {
                 'currencyCode': _config.currencyCode,
                 'add': {
+                    'actionField': {
+                        'list': product.list
+                    },
                     'products': [product]
                 }
             }
