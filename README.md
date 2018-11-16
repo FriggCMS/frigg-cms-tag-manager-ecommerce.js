@@ -141,9 +141,11 @@ Oppsettet må være likt som på bildet. Legg merke til "Checkout Labeling", dis
 Slik settes opp alt fra "scratch"
 1. Sett opp Google Analytics -variabel hvis den ikke finnes. Dette for å koble GTM mot Analytics kontoen.     
 ![alt-text](https://image.prntscr.com/image/CzB_5N6QQv28GQs8aOYQHw.png)   
-2. Sett opp Tag med type "Universal Analytics". Universal Analytics må deretter settes opp med 2 triggere, page view og custom event som må hete "friggUpdate". "friggUpdate" sørger for at klikk events blir fanget opp av GTM.   
+2. Sett opp en "Egendefinert Event" i tagManager som heter "friggUpdate" ![](https://image.prntscr.com/image/LXVEnsLJTbWHHjP9kVh5aw.png)
+3. Sett opp Tag med type "Universal Analytics". Universal Analytics må deretter settes opp med 2 triggere, page view og custom event "friggUpdate".
 ![alt-text](https://image.prntscr.com/image/6tvbYbz2Q7_jBn1r2Wzy2Q.png)
-3. Sette opp transactionEvent for Enhanced Ecommerce transaksjoner. 
+4. Sette opp event "transactionEvent" på samme måte som "friggUpdate".
+5. Sette opp Purchase-tag for Enhanced Ecommerce transaksjoner med utløser (trigger) "transactionEvent".
 ![alt-text](https://image.prntscr.com/image/IZMtLl8VSSOeX2ZzPli4kg.png)
 
 
