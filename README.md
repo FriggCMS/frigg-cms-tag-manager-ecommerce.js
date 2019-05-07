@@ -56,7 +56,7 @@ ProduktData må alltid settes i en data-tag som en JSON string. Eksempel:
 ### Debugging ###
 Ved å legge til debug parameter i url (eks www.sdf.sdf?debug) vil det dukke opp logger i console. I tillegg vil eventCallback ikke bli utført.
 
-### ProductImpression ### (Produktliste)
+### ProductImpression (Produktliste) ### 
 Eksempel på hvordan dette kan settes opp. Produktet settes opp i en data-tag.
 ```html
 <div data-frigg-gtm-impression data-frigg-gtm-product='{"id": "{content:default_productno}", "name": "{content:default_title}", "price": "{insert:netpricecleanhtml}", "brand": "", "category": "", "variant": "", "list": "Produktsøk"}'>
